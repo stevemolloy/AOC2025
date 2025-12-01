@@ -1,15 +1,10 @@
-#include <ranges>
-#include <vector>
-#include <algorithm>
+#include <charconv>
+#include <cstdio>
+#include <print>
 #include <cassert>
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
-
-using std::ranges::sort;
-using std::ranges::views::zip_transform;
-using std::ranges::fold_left;
 
 constexpr std::string data_dir = "data/";
 
@@ -18,28 +13,47 @@ int main(void) {
     std::ifstream input_data(data_dir + "input.txt");
 
     std::string data_line;
-    std::vector<int> list1, list2;
-    int val;
+    int dir;
+    int val = 50;
+    int move;
+    int part1 = 0;
+    int part2 = 0;
     while (std::getline(input_data, data_line)) {
-        std::stringstream ss(data_line);
+        std::string_view sv(data_line);
+        if (sv[0] == 'L') {
+            sv.remove_prefix(1);
+            std::from_chars(sv.data(), sv.data()+sv.length(), move);
+            dir = -1;
+        } else if (sv[0] == 'R') {
+            sv.remove_prefix(1);
+            std::from_chars(sv.data(), sv.data()+sv.length(), move);
+            dir = 1;
+        } else {
+            std::cout << sv[0] << std::endl;
+            fprintf(stdout, "Oh oh!\n");
+            return 1;
+        }
 
-        ss >> val;
-        list1.push_back(val);
+        std::print("Move = {:+03d}, ", move*dir);
 
-        ss >> val;
-        list2.push_back(val);
+        while (move > 0) {
+            val += dir;
+            val %= 100;
+            if (val == 0) {
+                part2 += 1;
+            }
+            move -= 1;
+        }
+
+        if (val == 0) {
+            part1 += 1;
+        }
+
+        // 6606 is too low
+        // 7738 is too high
+        // 7087 is too high
+        std::println("val = {:+03d}, part1 = {}, part2 = {}", val, part1, part2);
     }
-
-    assert(list1.size() == list2.size());
-
-    sort(list1);
-    sort(list2);
-
-    auto fn = [](int a, int b){return std::abs(a-b);};
-    auto zipped_diffs = zip_transform(fn, list1, list2);
-    int res = fold_left(zipped_diffs, 0, std::plus());
-
-    std::cout << res << std::endl;
 
     return 0;
 }

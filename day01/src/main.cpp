@@ -15,7 +15,7 @@ int main(void) {
     while (std::getline(input_data, data_line)) {
         std::string_view sv(data_line);
 
-        if (sv[0] == 'L') dir = -1;
+        if (sv[0] == 'L')      dir = -1;
         else if (sv[0] == 'R') dir = 1;
         else {
             std::println("Character {} was unexpected!", sv[0]);

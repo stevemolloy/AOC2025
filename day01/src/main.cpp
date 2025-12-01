@@ -14,18 +14,16 @@ int main(void) {
     std::string data_line;
     while (std::getline(input_data, data_line)) {
         std::string_view sv(data_line);
-        if (sv[0] == 'L') {
-            sv.remove_prefix(1);
-            std::from_chars(sv.data(), sv.data()+sv.length(), move);
-            dir = -1;
-        } else if (sv[0] == 'R') {
-            sv.remove_prefix(1);
-            std::from_chars(sv.data(), sv.data()+sv.length(), move);
-            dir = 1;
-        } else {
+
+        if (sv[0] == 'L') dir = -1;
+        else if (sv[0] == 'R') dir = 1;
+        else {
             std::println("Character {} was unexpected!", sv[0]);
             return 1;
         }
+
+        sv.remove_prefix(1);
+        std::from_chars(sv.data(), sv.data()+sv.length(), move);
 
         while (move > 0) {
             val = (val + dir) % 100;

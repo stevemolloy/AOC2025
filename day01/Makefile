@@ -1,5 +1,5 @@
 CPP = clang++
-CPPFLAGS = -std=c++23 -ggdb
+CPPFLAGS = -std=c++23 -ggdb -Wall -Wextra
 
 EXENAME = main
 EXEDIR = bin

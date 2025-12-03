@@ -1,11 +1,8 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
-#include <iostream>
 #include <print>
 #include <fstream>
-#include <regex>
-#include <sstream>
 #include <string>
 
 int main(void) {
@@ -20,8 +17,7 @@ int main(void) {
     while (std::getline(input_data, data_line)) {
         std::vector<unsigned long int> vals;
         for (char c: data_line) {
-            if (c == '\n') 
-                continue;
+            if (c == '\n') continue;
             vals.push_back(c - '0');
         }
 

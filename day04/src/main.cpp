@@ -1,8 +1,6 @@
-#include <cmath>
 #include <cstddef>
 #include <ranges>
 #include <vector>
-#include <algorithm>
 #include <print>
 #include <fstream>
 #include <string>
@@ -14,7 +12,7 @@ using std::ranges::views::enumerate;
 
 void dump_layout(vector<vector<int>> layout);
 int count_neighbours(vector<vector<int>> layout, size_t row, size_t col);
-int get_nbor_count(vector<vector<int>> layout);
+int get_nbor_count(vector<vector<int>> *layout);
 
 int main(void) {
     // std::ifstream input_data("data/test.txt");
@@ -39,7 +37,13 @@ int main(void) {
         layout.push_back(row);
     }
 
-    int part1 = get_nbor_count(layout);
+    int change = get_nbor_count(&layout);
+    int part1 = change;
+
+    while (change>0) {
+        part2 += change;
+        change = get_nbor_count(&layout);
+    }
 
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);
@@ -73,14 +77,19 @@ int count_neighbours(vector<vector<int>> layout, size_t row, size_t col) {
     return sum;
 }
 
-int get_nbor_count(vector<vector<int>> layout) {
+int get_nbor_count(vector<vector<int>> *layout) {
+    vector<vector<int>> copy_layout = *layout;
     size_t sum = 0;
-    for (auto const [r, row]: enumerate(layout)) {
+    for (auto const [r, row]: enumerate(*layout)) {
         for (auto const [c, cell]: enumerate(row)) {
-            int nbors = count_neighbours(layout, r, c);
-            if (nbors < 4 && cell==1) sum += 1;
+            int nbors = count_neighbours(*layout, r, c);
+            if (nbors < 4 && cell==1) {
+                sum += 1;
+                copy_layout.at(r).at(c) = 0;
+            }
         }
     }
+    *layout = copy_layout;
     return sum;
 }
 

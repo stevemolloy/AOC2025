@@ -8,26 +8,29 @@ using std::println;
 using std::print;
 using std::vector;
 
-void dump_layout(vector<vector<int>> layout);
-int count_neighbours(vector<vector<int>> &layout, size_t row, size_t col);
-int get_nbor_count(vector<vector<int>> &layout);
+template<typename T>
+using Vector2D = vector<vector<T>>;
+
+void dump_layout(Vector2D<int> layout);
+int count_neighbours(const Vector2D<int> &layout, size_t row, size_t col);
+int get_nbor_count(Vector2D<int> &layout);
+
+constexpr size_t arr_reserve = 256;
 
 int main(void) {
     // std::ifstream input_data("data/test.txt");
     std::ifstream input_data("data/input.txt");
 
     std::string data_line;
-    vector<vector<int>> layout;
-    layout.reserve(140);
+    Vector2D<int> layout;
+    layout.reserve(arr_reserve);
     while (std::getline(input_data, data_line)) {
         vector<int> row;
-        row.reserve(140);
+        row.reserve(arr_reserve);
         for (char c: data_line) {
-            if (c=='@') {
-                row.push_back(1);
-            } else if (c=='.') {
-                row.push_back(0);
-            } else {
+            if (c=='@')      row.push_back(1);
+            else if (c=='.') row.push_back(0);
+            else {
                 println("Received '{}', expecting '@' or '.'", c);
                 return 1;
             }
@@ -50,14 +53,14 @@ int main(void) {
     return 0;
 }
 
-void dump_layout(vector<vector<int>> layout) {
+void dump_layout(Vector2D<int> layout) {
     for (auto row: layout) {
         for (auto cell: row) print("{}", cell);
         println("");
     }
 }
 
-int count_neighbours(vector<vector<int>> &layout, size_t row, size_t col) {
+int count_neighbours(const Vector2D<int> &layout, size_t row, size_t col) {
     int sum = 0;
     if (layout[row][col] == 0) return sum;
 
@@ -76,8 +79,8 @@ int count_neighbours(vector<vector<int>> &layout, size_t row, size_t col) {
     return sum;
 }
 
-int get_nbor_count(vector<vector<int>> &layout) {
-    vector<vector<int>> copy_layout = layout;
+int get_nbor_count(Vector2D<int> &layout) {
+    Vector2D<int> copy_layout = layout;
     size_t sum = 0;
     size_t row_count = layout.size();
     for (size_t r=0; r<row_count; r++) {

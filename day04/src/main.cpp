@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstddef>
+#include <ranges>
 #include <vector>
 #include <algorithm>
 #include <print>
@@ -9,12 +10,46 @@
 using std::println;
 using std::print;
 using std::vector;
+using std::ranges::views::enumerate;
+
+void dump_layout(vector<vector<int>> layout);
+int count_neighbours(vector<vector<int>> layout, size_t row, size_t col);
+int get_nbor_count(vector<vector<int>> layout);
+
+int main(void) {
+    // std::ifstream input_data("data/test.txt");
+    std::ifstream input_data("data/input.txt");
+
+    unsigned long int part2 = 0;
+
+    std::string data_line;
+    vector<vector<int>> layout;
+    while (std::getline(input_data, data_line)) {
+        vector<int> row;
+        for (char c: data_line) {
+            if (c=='@') {
+                row.push_back(1);
+            } else if (c=='.') {
+                row.push_back(0);
+            } else {
+                println("Received '{}', expecting '@' or '.'", c);
+                return 1;
+            }
+        }
+        layout.push_back(row);
+    }
+
+    int part1 = get_nbor_count(layout);
+
+    println("Part 1: {}", part1);
+    println("Part 2: {}", part2);
+
+    return 0;
+}
 
 void dump_layout(vector<vector<int>> layout) {
     for (auto row: layout) {
-        for (auto cell: row) {
-            print("{}", cell);
-        }
+        for (auto cell: row) print("{}", cell);
         println("");
     }
 }
@@ -38,56 +73,14 @@ int count_neighbours(vector<vector<int>> layout, size_t row, size_t col) {
     return sum;
 }
 
-int dump_nbor_count(vector<vector<int>> layout) {
+int get_nbor_count(vector<vector<int>> layout) {
     size_t sum = 0;
-    size_t r=0, c=0;
-    for (auto row: layout) {
-        for (auto _: row) {
+    for (auto const [r, row]: enumerate(layout)) {
+        for (auto const [c, cell]: enumerate(row)) {
             int nbors = count_neighbours(layout, r, c);
-            if (nbors < 4 && layout.at(r).at(c)==1) sum += 1;
-            print("{}", nbors);
-            c += 1;
+            if (nbors < 4 && cell==1) sum += 1;
         }
-        println("");
-        c = 0;
-        r += 1;
     }
     return sum;
 }
 
-int main(void) {
-    // std::ifstream input_data("data/test.txt");
-    std::ifstream input_data("data/input.txt");
-
-    unsigned long int part2 = 0;
-
-    std::string data_line;
-    vector<vector<int>> layout;
-    while (std::getline(input_data, data_line)) {
-        vector<int> row;
-        for (char c: data_line) {
-            if (c=='@') {
-                row.push_back(1);
-            } else if (c=='.') {
-                row.push_back(0);
-            } else {
-                println("Received '{}', expecting '@' or '.'", c);
-                return 1;
-            }
-            print("{}", c);
-        }
-        println("");
-        layout.push_back(row);
-    }
-
-    println("");
-    dump_layout(layout);
-    println("");
-    int part1 = dump_nbor_count(layout);
-
-    println("");
-    println("Part 1: {}", part1);
-    println("Part 2: {}", part2);
-
-    return 0;
-}

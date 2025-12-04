@@ -1,5 +1,4 @@
 #include <cstddef>
-#include <ranges>
 #include <vector>
 #include <print>
 #include <fstream>
@@ -8,17 +7,14 @@
 using std::println;
 using std::print;
 using std::vector;
-using std::ranges::views::enumerate;
 
 void dump_layout(vector<vector<int>> layout);
 int count_neighbours(vector<vector<int>> layout, size_t row, size_t col);
-int get_nbor_count(vector<vector<int>> *layout);
+int get_nbor_count(vector<vector<int>>& layout);
 
 int main(void) {
     // std::ifstream input_data("data/test.txt");
     std::ifstream input_data("data/input.txt");
-
-    unsigned long int part2 = 0;
 
     std::string data_line;
     vector<vector<int>> layout;
@@ -37,12 +33,13 @@ int main(void) {
         layout.push_back(row);
     }
 
-    int change = get_nbor_count(&layout);
+    int change = get_nbor_count(layout);
     int part1 = change;
 
+    int part2 = 0;
     while (change>0) {
         part2 += change;
-        change = get_nbor_count(&layout);
+        change = get_nbor_count(layout);
     }
 
     println("Part 1: {}", part1);
@@ -60,36 +57,40 @@ void dump_layout(vector<vector<int>> layout) {
 
 int count_neighbours(vector<vector<int>> layout, size_t row, size_t col) {
     int sum = 0;
-    if (layout.at(row).at(col) == 0) return sum;
+    if (layout[row][col] == 0) return sum;
 
     size_t row_len = layout.size();
-    size_t col_len = layout.at(row).size();
+    size_t col_len = layout[row].size();
 
-    if (row != 0)                             sum += layout.at(row-1).at(col);
-    if (row != row_len-1)                     sum += layout.at(row+1).at(col);
-    if (col != 0)                             sum += layout.at(row).at(col-1);
-    if (col != col_len-1)                     sum += layout.at(row).at(col+1);
-    if (row != 0 && col != 0)                 sum += layout.at(row-1).at(col-1);
-    if (row != 0 && col != col_len-1)         sum += layout.at(row-1).at(col+1);
-    if (row != row_len-1 && col != 0)         sum += layout.at(row+1).at(col-1);
-    if (row != row_len-1 && col != col_len-1) sum += layout.at(row+1).at(col+1);
+    if (row != 0)                             sum += layout[row-1][col];
+    if (row != row_len-1)                     sum += layout[row+1][col];
+    if (col != 0)                             sum += layout[row][col-1];
+    if (col != col_len-1)                     sum += layout[row][col+1];
+    if (row != 0 && col != 0)                 sum += layout[row-1][col-1];
+    if (row != 0 && col != col_len-1)         sum += layout[row-1][col+1];
+    if (row != row_len-1 && col != 0)         sum += layout[row+1][col-1];
+    if (row != row_len-1 && col != col_len-1) sum += layout[row+1][col+1];
 
     return sum;
 }
 
-int get_nbor_count(vector<vector<int>> *layout) {
-    vector<vector<int>> copy_layout = *layout;
+int get_nbor_count(vector<vector<int>>& layout) {
+    vector<vector<int>> copy_layout = layout;
     size_t sum = 0;
-    for (auto const [r, row]: enumerate(*layout)) {
-        for (auto const [c, cell]: enumerate(row)) {
-            int nbors = count_neighbours(*layout, r, c);
-            if (nbors < 4 && cell==1) {
-                sum += 1;
-                copy_layout.at(r).at(c) = 0;
+    size_t row_count = layout.size();
+    for (size_t r=0; r<row_count; r++) {
+        size_t col_count = layout[r].size();
+        for (size_t c=0; c<col_count; c++) {
+            if (layout[r][c] == 1) {
+                int nbors = count_neighbours(layout, r, c);
+                if (nbors < 4) {
+                    sum += 1;
+                    copy_layout[r][c] = 0;
+                }
             }
         }
     }
-    *layout = copy_layout;
+    layout = std::move(copy_layout);
     return sum;
 }
 

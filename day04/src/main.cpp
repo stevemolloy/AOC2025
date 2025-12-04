@@ -62,14 +62,14 @@ int count_neighbours(vector<vector<int>> layout, size_t row, size_t col) {
     size_t row_len = layout.size();
     size_t col_len = layout[row].size();
 
-    if (row != 0)                             sum += layout[row-1][col];
-    if (row != row_len-1)                     sum += layout[row+1][col];
-    if (col != 0)                             sum += layout[row][col-1];
-    if (col != col_len-1)                     sum += layout[row][col+1];
-    if (row != 0 && col != 0)                 sum += layout[row-1][col-1];
-    if (row != 0 && col != col_len-1)         sum += layout[row-1][col+1];
-    if (row != row_len-1 && col != 0)         sum += layout[row+1][col-1];
-    if (row != row_len-1 && col != col_len-1) sum += layout[row+1][col+1];
+    if (row > 0)                            sum += layout[row-1][col];
+    if (row < row_len-1)                    sum += layout[row+1][col];
+    if (col > 0)                            sum += layout[row][col-1];
+    if (col < col_len-1)                    sum += layout[row][col+1];
+    if (row > 0 && col > 0)                 sum += layout[row-1][col-1];
+    if (row > 0 && col < col_len-1)         sum += layout[row-1][col+1];
+    if (row < row_len-1 && col > 0)         sum += layout[row+1][col-1];
+    if (row < row_len-1 && col < col_len-1) sum += layout[row+1][col+1];
 
     return sum;
 }

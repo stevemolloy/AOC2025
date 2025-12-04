@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <ranges>
 #include <vector>
 #include <print>
 #include <fstream>
@@ -7,6 +8,7 @@
 using std::println;
 using std::print;
 using std::vector;
+using std::ranges::views::enumerate;
 
 template<typename T>
 using Vector2D = vector<vector<T>>;
@@ -82,16 +84,12 @@ int count_neighbours(const Vector2D<int> &layout, size_t row, size_t col) {
 int get_nbor_count(Vector2D<int> &layout) {
     Vector2D<int> copy_layout = layout;
     size_t sum = 0;
-    size_t row_count = layout.size();
-    for (size_t r=0; r<row_count; r++) {
-        size_t col_count = layout[r].size();
-        for (size_t c=0; c<col_count; c++) {
-            if (layout[r][c] == 1) {
-                int nbors = count_neighbours(layout, r, c);
-                if (nbors < 4) {
-                    sum += 1;
-                    copy_layout[r][c] = 0;
-                }
+    for (const auto [r, row]: enumerate(layout)) {
+        for (const auto [c, cell]: enumerate(row)) {
+            if (cell != 1) continue;
+            if (count_neighbours(layout, r, c) < 4) {
+                sum += 1;
+                copy_layout[r][c] = 0;
             }
         }
     }

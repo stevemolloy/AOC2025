@@ -9,8 +9,8 @@ using std::print;
 using std::vector;
 
 void dump_layout(vector<vector<int>> layout);
-int count_neighbours(vector<vector<int>> layout, size_t row, size_t col);
-int get_nbor_count(vector<vector<int>>& layout);
+int count_neighbours(vector<vector<int>> &layout, size_t row, size_t col);
+int get_nbor_count(vector<vector<int>> &layout);
 
 int main(void) {
     // std::ifstream input_data("data/test.txt");
@@ -18,8 +18,10 @@ int main(void) {
 
     std::string data_line;
     vector<vector<int>> layout;
+    layout.reserve(140);
     while (std::getline(input_data, data_line)) {
         vector<int> row;
+        row.reserve(140);
         for (char c: data_line) {
             if (c=='@') {
                 row.push_back(1);
@@ -55,7 +57,7 @@ void dump_layout(vector<vector<int>> layout) {
     }
 }
 
-int count_neighbours(vector<vector<int>> layout, size_t row, size_t col) {
+int count_neighbours(vector<vector<int>> &layout, size_t row, size_t col) {
     int sum = 0;
     if (layout[row][col] == 0) return sum;
 
@@ -74,7 +76,7 @@ int count_neighbours(vector<vector<int>> layout, size_t row, size_t col) {
     return sum;
 }
 
-int get_nbor_count(vector<vector<int>>& layout) {
+int get_nbor_count(vector<vector<int>> &layout) {
     vector<vector<int>> copy_layout = layout;
     size_t sum = 0;
     size_t row_count = layout.size();

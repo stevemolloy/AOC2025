@@ -1,6 +1,5 @@
 #include <cassert>
 #include <sstream>
-#include <sys/types.h>
 #include <vector>
 #include <print>
 #include <fstream>
@@ -22,66 +21,12 @@ typedef enum {
     RNG_OVERLAP,
     RNG_WITHIN,
     RNG_SAME,
-} RngComparison;
+} RangeComp;
 
-RngComparison compare_ranges(Range r1, Range r2) {
-    assert(r1.start <= r2.start);   // Already sorted
-    assert(r1.start <= r1.end);     // Properly formed ranges
-    assert(r2.start <= r2.end);     // Properly formed ranges
-    if (r1.start == r2.start && r1.end == r2.end) return RNG_SAME;
-    if (r2.start > r1.end) return RNG_DISJOINT;
-    if (r2.end <= r1.end) return RNG_WITHIN;
-    return RNG_OVERLAP;
-}
-
-std::string range_to_string(RngComparison r) {
-    switch (r) {
-        case RNG_DISJOINT: return "Disjoint";
-        case RNG_OVERLAP: return "Overlap";
-        case RNG_WITHIN: return "Within";
-        case RNG_SAME: return "Same";
-    }
-}
-
-ulong sum_ranges(const vector<Range> &ranges) {
-    ulong sum = 0;
-    for (Range r: ranges) {
-        if (r.start > r.end) continue;
-        ulong gap = r.end - r.start + 1;
-        println("Gap = {}", gap);
-        sum += gap;
-    }
-    return sum;
-}
-
-vector<Range> fix_ranges(vector<Range> &ranges) {
-    std::sort(
-        ranges.begin(),
-        ranges.end(),
-        [](Range a, Range b){
-            return b.start > a.start;
-        }
-    );
-    vector<Range> result;
-    result.push_back(ranges[0]);
-
-    size_t rsize = ranges.size();
-    for (size_t i=1; i<rsize; i++) {
-        RngComparison comp = compare_ranges(result.back(), ranges[i]);
-        if (comp == RNG_SAME) continue;
-        else if (comp == RNG_WITHIN) continue;
-        else if (comp == RNG_DISJOINT) {
-            result.push_back(ranges[i]);
-        } else if (comp == RNG_OVERLAP) {
-            result.back().end = ranges[i].end;
-        } else {
-            println("ERROR: Weird return value from compare_ranges()");
-            exit(1);
-        }
-    }
-
-    return result;
-}
+RangeComp compare_ranges(Range r1, Range r2);
+std::string range_to_string(RangeComp r);
+ulong sum_ranges(const vector<Range> &ranges);
+vector<Range> fix_ranges(vector<Range> &ranges);
 
 int main(void) {
     // std::ifstream input_data("data/test.txt");
@@ -136,4 +81,67 @@ int main(void) {
 
     return 0;
 }
+
+RangeComp compare_ranges(Range r1, Range r2) {
+    assert(r1.start <= r2.start);   // Already sorted
+    assert(r1.start <= r1.end);     // Properly formed ranges
+    assert(r2.start <= r2.end);     // Properly formed ranges
+    if (r1.start == r2.start && r1.end == r2.end) return RNG_SAME;
+    if (r2.start > r1.end) return RNG_DISJOINT;
+    if (r2.end <= r1.end) return RNG_WITHIN;
+    return RNG_OVERLAP;
+}
+
+std::string range_to_string(RangeComp r) {
+    switch (r) {
+        case RNG_DISJOINT: return "Disjoint";
+        case RNG_OVERLAP: return "Overlap";
+        case RNG_WITHIN: return "Within";
+        case RNG_SAME: return "Same";
+        default: {
+            println("ERROR: You reached the unreachable in a switch statement.");
+            println("ERROR: Memory corruption?");
+            exit(1);
+        }
+    }
+}
+
+ulong sum_ranges(const vector<Range> &ranges) {
+    ulong sum = 0;
+    for (Range r: ranges) {
+        if (r.start > r.end) continue;
+        ulong gap = r.end - r.start + 1;
+        println("Gap = {}", gap);
+        sum += gap;
+    }
+    return sum;
+}
+
+vector<Range> fix_ranges(vector<Range> &ranges) {
+    std::sort(
+        ranges.begin(),
+        ranges.end(),
+        [](Range a, Range b){
+            return b.start > a.start;
+        }
+    );
+    vector<Range> result;
+    result.push_back(ranges[0]);
+
+    size_t rsize = ranges.size();
+    for (size_t i=1; i<rsize; i++) {
+        RangeComp comp = compare_ranges(result.back(), ranges[i]);
+        if (comp == RNG_SAME || comp == RNG_WITHIN) continue; // Redundant range
+        else if (comp == RNG_DISJOINT) result.push_back(ranges[i]); // Completely new range
+        else if (comp == RNG_OVERLAP)  result.back().end = ranges[i].end; // Merge with last one
+        else {
+            println("ERROR: Weird return value from compare_ranges()");
+            println("ERROR: Memory corruption?");
+            exit(1);
+        }
+    }
+
+    return result;
+}
+
 

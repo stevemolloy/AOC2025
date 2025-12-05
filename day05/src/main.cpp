@@ -1,15 +1,11 @@
-#include <algorithm>
 #include <cassert>
-#include <cstddef>
-#include <cstdlib>
 #include <sstream>
+#include <sys/types.h>
 #include <vector>
 #include <print>
 #include <fstream>
-#include <string>
 
 using std::println;
-using std::print;
 using std::vector;
 
 typedef enum {
@@ -18,7 +14,7 @@ typedef enum {
 } State;
 
 typedef struct {
-    unsigned long int start, end;
+    ulong start, end;
 } Range;
 
 typedef enum {
@@ -30,8 +26,8 @@ typedef enum {
 
 RngComparison compare_ranges(Range r1, Range r2) {
     assert(r1.start <= r2.start);   // Already sorted
-    assert(r1.start <= r1.end);    // Properly formed ranges
-    assert(r2.start <= r2.end);    // Properly formed ranges
+    assert(r1.start <= r1.end);     // Properly formed ranges
+    assert(r2.start <= r2.end);     // Properly formed ranges
     if (r1.start == r2.start && r1.end == r2.end) return RNG_SAME;
     if (r2.start > r1.end) return RNG_DISJOINT;
     if (r2.end <= r1.end) return RNG_WITHIN;
@@ -47,11 +43,11 @@ std::string range_to_string(RngComparison r) {
     }
 }
 
-unsigned long int sum_ranges(const vector<Range> &range) {
-    unsigned long int sum = 0;
-    for (auto r: range) {
+ulong sum_ranges(const vector<Range> &ranges) {
+    ulong sum = 0;
+    for (Range r: ranges) {
         if (r.start > r.end) continue;
-        unsigned long int gap = r.end - r.start + 1;
+        ulong gap = r.end - r.start + 1;
         println("Gap = {}", gap);
         sum += gap;
     }
@@ -89,10 +85,9 @@ vector<Range> fix_ranges(vector<Range> &ranges) {
 
 int main(void) {
     // std::ifstream input_data("data/test.txt");
-    // std::ifstream input_data("data/test2.txt");
     std::ifstream input_data("data/input.txt");
 
-    unsigned long int part1=0, part2 = 0;
+    ulong part1 = 0;
 
     State state = STATE_RANGES;
     std::string data_line;
@@ -104,49 +99,39 @@ int main(void) {
                     state = STATE_ITEMS;
                     continue;
                 }
-                unsigned long int start, end;
+                ulong start, end;
                 char dash;
                 std::stringstream(data_line) >> start >> dash >> end;
                 Range range(start, end);
                 ranges.push_back(std::move(range));
             } break;
             case STATE_ITEMS: {
-                unsigned long int test_val;
+                ulong test_val;
                 std::stringstream(data_line) >> test_val;
-                for (auto r: ranges) {
+                for (Range r: ranges) {
                     if (r.start <= test_val && test_val <=r.end) {
                         part1 += 1;
                         break;
                     }
                 }
+            } break;
+            default: {
+                println("ERROR: You reached the unreachable in a switch statement.");
+                println("ERROR: Memory corruption?");
+                exit(1);
             }
         }
     }
-
-    std::sort(
-        ranges.begin(),
-        ranges.end(),
-        [](Range a, Range b){
-            return b.start > a.start;
-        }
-    );
-
-    println("---------------------------------");
-    for (auto r: ranges)
-        println("{} <--> {}", r.start, r.end);
+    assert(part1 == 679);
 
     vector<Range> actual_ranges = fix_ranges(ranges);
 
-    println("---------------------------------");
-    for (auto r: actual_ranges)
-        println("{} <--> {}", r.start, r.end);
-    println("---------------------------------");
-
-    for (auto r: actual_ranges) {
+    ulong part2 = 0;
+    for (Range r: actual_ranges)
         part2 += r.end - r.start + 1;
-    }
+    assert(part2 == 358155203664116);
+
     println("Part 1: {}", part1);
-    // 334806164202981 is too low
     println("Part 2: {}", part2);
 
     return 0;

@@ -16,9 +16,9 @@ typedef struct {
     std::vector<char> functors;
 } ParsedData;
 
-vector<ulong> get_lengths_from_lastline(std::string last_line);
 ParsedData parse_data_part1(std::string filename);
 ulong solve_part1(ParsedData parsed_data);
+vector<ulong> get_lengths_from_lastline(std::string last_line);
 std::string get_last_line(std::string filename);
 
 int main(void) {

@@ -2,14 +2,14 @@
 #include <cassert>
 #include <cstdlib>
 #include <functional>
-#include <sstream>
 #include <vector>
 #include <print>
 #include <fstream>
 
 using std::println;
-using std::print;
 using std::vector;
+
+using BinFunc = std::function<ulong(ulong, ulong)>;
 
 std::string get_last_line(std::ifstream& in) {
     std::string line;
@@ -72,8 +72,7 @@ int main(void) {
         part1 += result;
     }
 
-    if (filename == "data/input.txt")
-        assert(part1 == 6169101504608);
+    if (filename == "data/input.txt") assert(part1 == 6169101504608);
 
     input_data.open(filename);
     std::string last_line = get_last_line(input_data);
@@ -106,43 +105,33 @@ int main(void) {
         }
         part2digits.push_back(row_digits);
     }
+    input_data.close();
     part2digits.pop_back();
 
     vector<ulong> part2vals;
     for (size_t i=0; i<part2digits[0].size(); i++) {
         ulong val = 0;
         for (size_t j=0; j<part2digits.size(); j++) {
-            if (part2digits[j][i] ==0) continue;
+            if (part2digits[j][i] ==0) continue;  // Safe since input data contains no zeros
             val = val*10 + part2digits[j][i];
         }
         part2vals.push_back(val);
     }
     std::reverse(functors.begin(), functors.end());
-    for (auto v : part2vals)
-        print("{} ", v);
-    println("");
-    for (auto f: lengths)
-        print("{} ", f);
-    println("");
 
     ulong part2 = 0;
     size_t index = 0;
     for (size_t i=0; i<lengths.size(); i++) {
-        ulong accum = 0;
-        std::function<ulong(ulong, ulong)> func = std::plus<ulong>();
-        if (functors[i] == '*') {
-            accum = 1;
-            func = std::multiplies<ulong>();
-        }
-        size_t len = lengths[i];
-        ulong result = std::ranges::fold_left(part2vals.begin()+index, part2vals.begin()+index+len, accum, func);
-        println("{}", result);
-        part2 += result;
-        index += len + 1;
+        part2 += std::ranges::fold_left(
+                part2vals.begin()+index,
+                part2vals.begin()+index+lengths[i],
+                functors[i]=='+' ? 0 : 1,
+                functors[i]=='+' ? (BinFunc)std::plus<ulong>() : (BinFunc)std::multiplies<ulong>()
+            );
+        index += lengths[i] + 1;
     }
 
-    if (filename == "data/input.txt")
-        assert(part2 == 10442199710797);
+    if (filename == "data/input.txt") assert(part2 == 10442199710797);
 
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);

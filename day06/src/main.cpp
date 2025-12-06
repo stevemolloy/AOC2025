@@ -11,17 +11,24 @@ using std::println;
 using std::print;
 using std::vector;
 
+std::string get_last_line(std::ifstream& in) {
+    std::string line;
+    while (in >> std::ws && std::getline(in, line));
+    return line;
+}
+
 int main(void) {
-    // std::ifstream input_data("data/test.txt");
-    std::ifstream input_data("data/input.txt");
+    // std::string filename = "data/test.txt";
+    // std::string filename = "data/test2.txt";
+    std::string filename = "data/input.txt";
+
+    std::ifstream input_data(filename);
 
     std::string data_line;
     vector<vector<ulong>> vals;
     std::vector<char> functors;
     bool first_iter = true;
     while (std::getline(input_data, data_line)) {
-        println("{}", data_line);
-
         size_t counter = 0;
         ulong val;
 
@@ -55,20 +62,88 @@ int main(void) {
 
         first_iter = false;
     }
+    input_data.close();
 
     ulong part1 = 0;
     for (size_t i=0; i<functors.size(); i++) {
         ulong result;
-        if (functors[i] == '+')
-            result = std::ranges::fold_left(vals[i], 0, std::plus<ulong>());
-        else if (functors[i] == '*')
-            result = std::ranges::fold_left(vals[i], 1, std::multiplies<ulong>());
+        if (functors[i] == '+') result = std::ranges::fold_left(vals[i], 0, std::plus<ulong>());
+        else if (functors[i] == '*') result = std::ranges::fold_left(vals[i], 1, std::multiplies<ulong>());
         part1 += result;
-        println("{}", result);
     }
-    assert(part1 == 6169101504608);
+
+    if (filename == "data/input.txt")
+        assert(part1 == 6169101504608);
+
+    input_data.open(filename);
+    std::string last_line = get_last_line(input_data);
+    std::reverse(last_line.begin(), last_line.end());
+    input_data.close();
+
+    size_t spc_counter = 1;  // Offset at the start due to boundary conds
+    vector<size_t> lengths;
+    for (char c : last_line) {
+        if (c == ' ') {
+            spc_counter += 1;
+        } else if (c=='*' || c=='+') {
+            lengths.push_back(spc_counter);
+            spc_counter = 0;
+        } else {
+            println("ERROR: Got unexpected character: '{}'", c);
+            exit(1);
+        }
+    }
+
+    input_data.open(filename);
+    vector<vector<ulong>> part2digits;
+    while (std::getline(input_data, data_line)) {
+        std::reverse(data_line.begin(), data_line.end());
+
+        vector<ulong> row_digits;
+        for (char c : data_line) {
+            if (c == ' ') row_digits.push_back(0);
+            else row_digits.push_back(c - '0');
+        }
+        part2digits.push_back(row_digits);
+    }
+    part2digits.pop_back();
+
+    vector<ulong> part2vals;
+    for (size_t i=0; i<part2digits[0].size(); i++) {
+        ulong val = 0;
+        for (size_t j=0; j<part2digits.size(); j++) {
+            if (part2digits[j][i] ==0) continue;
+            val = val*10 + part2digits[j][i];
+        }
+        part2vals.push_back(val);
+    }
+    std::reverse(functors.begin(), functors.end());
+    for (auto v : part2vals)
+        print("{} ", v);
+    println("");
+    for (auto f: lengths)
+        print("{} ", f);
+    println("");
 
     ulong part2 = 0;
+    size_t index = 0;
+    for (size_t i=0; i<lengths.size(); i++) {
+        ulong accum = 0;
+        std::function<ulong(ulong, ulong)> func = std::plus<ulong>();
+        if (functors[i] == '*') {
+            accum = 1;
+            func = std::multiplies<ulong>();
+        }
+        size_t len = lengths[i];
+        ulong result = std::ranges::fold_left(part2vals.begin()+index, part2vals.begin()+index+len, accum, func);
+        println("{}", result);
+        part2 += result;
+        index += len + 1;
+    }
+
+    if (filename == "data/input.txt")
+        assert(part2 == 10442199710797);
+
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);
 

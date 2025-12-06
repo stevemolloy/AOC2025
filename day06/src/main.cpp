@@ -16,9 +16,10 @@ typedef struct {
     std::vector<char> functors;
 } ParsedData;
 
+vector<ulong> get_lengths_from_lastline(std::string last_line);
 ParsedData parse_data_part1(std::string filename);
 ulong solve_part1(ParsedData parsed_data);
-std::string get_last_line(std::ifstream& in);
+std::string get_last_line(std::string filename);
 
 int main(void) {
     // std::string filename = "data/test.txt";
@@ -29,28 +30,13 @@ int main(void) {
     ulong part1 = solve_part1(parsed_data);
     if (filename == "data/input.txt") assert(part1 == 6169101504608);
 
-    std::ifstream input_data(filename);
-    std::string last_line = get_last_line(input_data);
+    std::string last_line = get_last_line(filename);
     std::reverse(last_line.begin(), last_line.end());
-    input_data.close();
+    vector<size_t> lengths = get_lengths_from_lastline(last_line);
 
-    size_t spc_counter = 1;  // Offset at the start due to boundary conds
-    vector<size_t> lengths;
-    for (char c : last_line) {
-        if (c == ' ') {
-            spc_counter += 1;
-        } else if (c=='*' || c=='+') {
-            lengths.push_back(spc_counter);
-            spc_counter = 0;
-        } else {
-            println("ERROR: Got unexpected character: '{}'", c);
-            exit(1);
-        }
-    }
-
-    input_data.open(filename);
-    std::string data_line;
     vector<vector<ulong>> part2digits;
+    std::ifstream input_data(filename);
+    std::string data_line;
     while (std::getline(input_data, data_line)) {
         std::reverse(data_line.begin(), data_line.end());
 
@@ -150,10 +136,28 @@ ulong solve_part1(ParsedData parsed_data) {
     return res;
 }
 
-std::string get_last_line(std::ifstream& in) {
+std::string get_last_line(std::string filename) {
+    std::ifstream in(filename);
     std::string line;
     while (in >> std::ws && std::getline(in, line));
+    in.close();
     return line;
 }
 
+vector<ulong> get_lengths_from_lastline(std::string last_line) {
+    vector<ulong> lengths;
+    size_t spc_counter = 1;  // Offset at the start due to boundary conds
+    for (char c : last_line) {
+        if (c == ' ') {
+            spc_counter += 1;
+        } else if (c=='*' || c=='+') {
+            lengths.push_back(spc_counter);
+            spc_counter = 0;
+        } else {
+            println("ERROR: Got unexpected character: '{}'", c);
+            exit(1);
+        }
+    }
+    return lengths;
+}
 

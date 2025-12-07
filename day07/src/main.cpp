@@ -9,20 +9,21 @@
 using std::println;
 using std::print;
 using std::vector;
+using std::string;
 
-vector<std::string> read_file(const std::string &filename);
+vector<string> read_file(const string &filename);
 void print_num_grid(const vector<vector<long>> &num_grid);
-size_t solve_part1(vector<std::string> &working_grid);
+size_t solve_part1(vector<string> &working_grid);
 long sum_paths(const vector<vector<long>> &num_grid);
-vector<vector<long>> make_num_grid(const vector<std::string> &working_grid);
+vector<vector<long>> make_num_grid(const vector<string> &working_grid);
 void draw_paths(vector<vector<long>> &num_grid);
 
 int main(void) {
-    // std::string filename = "data/test.txt";
-    std::string filename = "data/input.txt";
+    // string filename = "data/test.txt";
+    string filename = "data/input.txt";
 
-    vector<std::string> file_contents = read_file(filename);
-    vector<std::string> working_grid(file_contents);
+    vector<string> file_contents = read_file(filename);
+    vector<string> working_grid(file_contents);
 
     size_t part1 = solve_part1(working_grid);
     if (filename == "data/input.txt") assert(part1 == 1717);
@@ -38,10 +39,10 @@ int main(void) {
     return 0;
 }
 
-vector<std::string> read_file(const std::string &filename) {
+vector<string> read_file(const string &filename) {
     std::ifstream file_stream(filename);
-    vector<std::string> file_contents;
-    std::string line;
+    vector<string> file_contents;
+    string line;
     while (std::getline(file_stream, line))
         file_contents.push_back(std::move(line));
     return file_contents;
@@ -61,7 +62,7 @@ void print_num_grid(const vector<vector<long>> &num_grid) {
 
 }
 
-size_t solve_part1(vector<std::string> &working_grid) {
+size_t solve_part1(vector<string> &working_grid) {
     size_t part1 = 0;
     size_t max_i = working_grid.size();
     for (size_t i=1; i<max_i; i++) {
@@ -93,7 +94,7 @@ long sum_paths(const vector<vector<long>> &num_grid) {
     return part2;
 }
 
-vector<vector<long>> make_num_grid(const vector<std::string> &working_grid) {
+vector<vector<long>> make_num_grid(const vector<string> &working_grid) {
     vector<vector<long>> num_grid;
     for (auto row: working_grid) {
         vector<long> num_row;

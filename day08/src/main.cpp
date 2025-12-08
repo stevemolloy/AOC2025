@@ -1,9 +1,8 @@
 #include <algorithm>
+#include <optional>
 #include <cassert>
 #include <cmath>
-#include <functional>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 #include <print>
@@ -14,6 +13,9 @@ using std::vector;
 using std::string;
 
 using FileContents = vector<string>;
+
+constexpr size_t TEST_CONNS = 10;
+constexpr size_t INPUT_CONNS = 1000;
 
 class Point {
     public:
@@ -44,14 +46,14 @@ void Point::dump() const {
     println("x = {} :: y = {} :: z = {}", x, y, z);
 }
 
-typedef struct {
+struct PointPair {
     size_t p1, p2;
     double distance;
-} PointPair;
+};
 
 FileContents read_file(const string &filename);
-int point_in_circuit(size_t p_index, vector<vector<size_t>> circuits);
-void add_pointpair_to_circuits(PointPair pp, vector<vector<size_t>>& circuits);
+std::optional<size_t> point_in_circuit(size_t p_index, const vector<vector<size_t>>& circuits);
+void add_pointpair_to_circuits(const PointPair& pp, vector<vector<size_t>>& circuits);
 
 int main(void) {
     // string filename = "data/test.txt";
@@ -65,48 +67,46 @@ int main(void) {
         return 1;
     }
 
-    size_t num_connections = 10;
-    if (filename == "data/input.txt") num_connections = 1000;
+    size_t num_connections = TEST_CONNS;
+    if (filename == "data/input.txt") num_connections = INPUT_CONNS;
 
     vector<Point> points;
-    for (auto row: file_contents)
-        points.push_back(Point(row));
+    points.reserve(file_contents.size());
+    for (const auto& row: file_contents)
+        points.emplace_back(row);
 
     vector<PointPair> distances;
+    distances.reserve((points.size() * (points.size()-1))/2);
     for (size_t i = 0; i<points.size()-1; i++) {
         for (size_t j = i+1; j<points.size(); j++) {
-            PointPair pp = (PointPair){
-                .p1 = i,
-                .p2 = j,
-                .distance = points[i].dist(points[j]),
-            };
-            distances.push_back(pp);
+            distances.emplace_back(i, j, points[i].dist(points[j]));
         }
     }
     std::sort(
             distances.begin(),
             distances.end(),
-            [](PointPair p1, PointPair p2){return p1.distance < p2.distance;}
+            [](const PointPair& p1, const PointPair& p2){return p1.distance < p2.distance;}
         );
 
     vector<vector<size_t>> circuits;
     for (size_t conn_num=0; conn_num<num_connections; conn_num++) {
-        PointPair pp = distances[conn_num];
+        const PointPair& pp = distances[conn_num];
         add_pointpair_to_circuits(pp, circuits);
     }
 
     vector<size_t> lengths;
-    for (auto c: circuits)
+    lengths.reserve(circuits.size());
+    for (const auto& c: circuits)
         lengths.push_back(c.size());
 
     std::sort(lengths.begin(), lengths.end(), std::greater<size_t>());
 
-    ulong part1 = (ulong)lengths[0] * (ulong)lengths[1] * (ulong)lengths[2];
+    size_t part1 = lengths[0] * lengths[1] * lengths[2];
     if (filename == "data/input.txt") assert(part1 == 133574);
 
-    ulong part2 = 0;
+    size_t part2 = 0;
     while (circuits.size() != 1 || circuits[0].size() < points.size()) {
-        PointPair pp = distances[num_connections];
+        const PointPair& pp = distances[num_connections];
         add_pointpair_to_circuits(pp, circuits);
         part2 = points[pp.p1].x * points[pp.p2].x;
         num_connections += 1;
@@ -119,42 +119,32 @@ int main(void) {
     return 0;
 }
 
-void add_pointpair_to_circuits(PointPair pp, vector<vector<size_t>>& circuits) {
-    int p1_circuit = point_in_circuit(pp.p1, circuits);
-    int p2_circuit = point_in_circuit(pp.p2, circuits);
-    if (p1_circuit>=0 && p2_circuit>=0) {
-        if (p1_circuit == p2_circuit) return;
-        circuits[p1_circuit].insert(      // Both are in existing circuits
-                circuits[p1_circuit].end(),  // This new connection joins those
-                circuits[p2_circuit].begin(), // circuits into one.
-                circuits[p2_circuit].end()
+void add_pointpair_to_circuits(const PointPair& pp, vector<vector<size_t>>& circuits) {
+    auto p1_circuit = point_in_circuit(pp.p1, circuits);
+    auto p2_circuit = point_in_circuit(pp.p2, circuits);
+    if (p1_circuit && p2_circuit) {
+        if (*p1_circuit == *p2_circuit) return;
+        circuits[*p1_circuit].insert(      // Both are in existing circuits
+                circuits[*p1_circuit].end(),  // This new connection joins those
+                circuits[*p2_circuit].begin(), // circuits into one.
+                circuits[*p2_circuit].end()
             );
-        circuits.erase(circuits.begin() + p2_circuit);  // Erase the extraneous circuit
-    } else if (p1_circuit<0 && p2_circuit<0) {  // A brand new circuit
-        vector<size_t> new_circuit;
-        new_circuit.push_back(pp.p1);
-        new_circuit.push_back(pp.p2);
-        circuits.push_back(new_circuit);
-    } else if (p1_circuit<0) {                    // Add the new node to the old circuit
-        circuits[p2_circuit].push_back(pp.p1);
+        circuits.erase(circuits.begin() + *p2_circuit);  // Erase the extraneous circuit
+    } else if (!p1_circuit && !p2_circuit) {  // A brand new circuit
+        circuits.push_back({pp.p1, pp.p2});
+    } else if (!p1_circuit) {                    // Add the new node to the old circuit
+        circuits[*p2_circuit].push_back(pp.p1);
     } else {
-        assert(p2_circuit<0);
-        circuits[p1_circuit].push_back(pp.p2);
+        circuits[*p1_circuit].push_back(pp.p2);
     }
 }
 
-int point_in_circuit(size_t p_index, vector<vector<size_t>> circuits) {
-    int result = -1;
+std::optional<size_t> point_in_circuit(size_t p_index, const vector<vector<size_t>>& circuits) {
     for (size_t i=0; i<circuits.size(); i++) {
-        vector<size_t> circuit = circuits[i];
-        for (size_t j=0; j<circuit.size(); j++) {
-            if (circuit[j] == p_index) {
-                result = (int)i;
-                break;
-            }
-        }
+        if (std::find(circuits[i].begin(), circuits[i].end(), p_index) != circuits[i].end())
+            return i;
     }
-    return result;
+    return std::nullopt;
 }
 
 vector<string> read_file(const string &filename) {

@@ -52,6 +52,7 @@ using Distances = vector<PointPair>;
 
 FileContents read_file(const string &filename);
 int point_in_circuit(size_t p_index, vector<vector<size_t>> circuits);
+void deal_with_pointpair(PointPair pp, vector<vector<size_t>>& circuits);
 
 int main(void) {
     // string filename = "data/test.txt";
@@ -89,24 +90,9 @@ int main(void) {
 
     for (size_t conn_num=0; conn_num<num_connections; conn_num++) {
         PointPair pp = distances[conn_num];
-        int p1_circuit = point_in_circuit(pp.p1, circuits);
-        int p2_circuit = point_in_circuit(pp.p2, circuits);
-        if (p1_circuit>=0 && p2_circuit>=0) {
-            if (p1_circuit == p2_circuit) continue;
-            circuits[p1_circuit].insert(circuits[p1_circuit].end(), circuits[p2_circuit].begin(), circuits[p2_circuit].end());
-            circuits.erase(circuits.begin() + p2_circuit);
-        } else if (p1_circuit<0 && p2_circuit<0) {
-            vector<size_t> new_circuit;
-            new_circuit.push_back(pp.p1);
-            new_circuit.push_back(pp.p2);
-            circuits.push_back(new_circuit);
-        } else if (p1_circuit<0) {
-            circuits[p2_circuit].push_back(pp.p1);
-        } else {
-            assert(p2_circuit<0);
-            circuits[p1_circuit].push_back(pp.p2);
-        }
+        deal_with_pointpair(pp, circuits);
     }
+    println("Conn_num {}/{}", num_connections, distances.size());
     println("Number of circuits = {}", circuits.size());
     vector<size_t> lengths;
     for (auto c: circuits) {
@@ -118,11 +104,34 @@ int main(void) {
     if (filename == "data/input.txt") assert(part1 == 133574);
 
     ulong part2 = 0;
+    // while (circuits.size() != 1) {
+    //
+    // }
 
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);
 
     return 0;
+}
+
+void deal_with_pointpair(PointPair pp, vector<vector<size_t>>& circuits) {
+    int p1_circuit = point_in_circuit(pp.p1, circuits);
+    int p2_circuit = point_in_circuit(pp.p2, circuits);
+    if (p1_circuit>=0 && p2_circuit>=0) {
+        if (p1_circuit == p2_circuit) return;
+        circuits[p1_circuit].insert(circuits[p1_circuit].end(), circuits[p2_circuit].begin(), circuits[p2_circuit].end());
+        circuits.erase(circuits.begin() + p2_circuit);
+    } else if (p1_circuit<0 && p2_circuit<0) {
+        vector<size_t> new_circuit;
+        new_circuit.push_back(pp.p1);
+        new_circuit.push_back(pp.p2);
+        circuits.push_back(new_circuit);
+    } else if (p1_circuit<0) {
+        circuits[p2_circuit].push_back(pp.p1);
+    } else {
+        assert(p2_circuit<0);
+        circuits[p1_circuit].push_back(pp.p2);
+    }
 }
 
 int point_in_circuit(size_t p_index, vector<vector<size_t>> circuits) {

@@ -104,9 +104,16 @@ int main(void) {
     if (filename == "data/input.txt") assert(part1 == 133574);
 
     ulong part2 = 0;
-    // while (circuits.size() != 1) {
-    //
-    // }
+    while (circuits.size() != 1 || circuits[0].size() < points.size()) {
+        PointPair pp = distances[num_connections];
+        deal_with_pointpair(pp, circuits);
+        println("circuits.size() = {}", circuits.size());
+        if (circuits.size() == 1) println("\tcircuits[0].size() = {}", circuits[0].size());
+        part2 = points[pp.p1].x * points[pp.p2].x;
+        num_connections += 1;
+    }
+    if (filename == "data/input.txt") assert(part2 == 2435100380);
+    println("num_connections = {}", num_connections);
 
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);

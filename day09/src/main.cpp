@@ -28,14 +28,14 @@ Point::Point(const std::string& str) {
     std::stringstream(str) >> x >> c >> y;
 }
 
-class Rectangle {
+class Rect {
 public:
-    Rectangle(Point p1, Point p2);
+    Rect(Point p1, Point p2);
     Point p1, p2;
     long area;
 };
 
-Rectangle::Rectangle(Point p1, Point p2): p1(p1), p2(p2) {
+Rect::Rect(Point p1, Point p2): p1(p1), p2(p2) {
     long width = std::abs(p1.x - p2.x + 1);
     long height = std::abs(p1.y - p2.y + 1);
     area = width*height;
@@ -58,7 +58,7 @@ int main(void) {
         points.emplace_back(line);
     }
 
-    vector<Rectangle> rects;
+    vector<Rect> rects;
     rects.reserve((points.size() * (points.size() - 1)) / 2);
     for (size_t i=0; i<points.size()-1; i++) {
         for (size_t j=1; j<points.size(); j++) {
@@ -66,10 +66,10 @@ int main(void) {
         }
     }
 
-    std::sort(rects.begin(), rects.end(), [](Rectangle r1, Rectangle r2){return r1.area > r2.area;});
-    println("{}", rects[0].area);
+    std::sort(rects.begin(), rects.end(), [](Rect r1, Rect r2){return r1.area > r2.area;});
 
     size_t part1 = rects[0].area;
+    if (filename=="data/input.txt") assert(part1 == 4786902990);
     size_t part2 = 0;
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);

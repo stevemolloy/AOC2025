@@ -1,4 +1,4 @@
-CPP = g++
+CPP = clang++
 CPPFLAGS = -std=c++23 -ggdb -Wall -Wextra -O0
 
 EXENAME = main

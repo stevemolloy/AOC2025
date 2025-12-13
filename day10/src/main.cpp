@@ -143,30 +143,16 @@ int main(void) {
     }
     vector<Problem> problems;
     for (const auto& row: file_contents) {
-        println("{}", row);
         problems.emplace_back(row);
     }
 
-    for (const auto& prob: problems) {
-        println("goal = {}", prob.goal);
-        std::print("\tButtons = ");
-        for (const auto& btn: prob.buttons) {
-            std::print("{} ", btn);
-        }
-        println("");
-    }
-
     int part1 = 0;
-    for (int i=0; auto& prob: problems) {
+    for (auto& prob: problems) {
         auto min_presses = prob.MinBtnPresses();
-        if (min_presses.has_value()) {
-            println("{}: Min presses = {}", i, min_presses.value());
+        if (min_presses.has_value())
             part1 += min_presses.value();
-        } else {
-            println("{}: No answer :(", i);
-        }
-        i += 1;
     }
+    if (filename == "data/input.txt") assert(part1 == 438);
 
     size_t part2 = 0;
 

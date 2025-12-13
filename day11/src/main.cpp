@@ -6,7 +6,6 @@
 #include <print>
 #include <fstream>
 #include <ranges>
-#include <algorithm>
 
 using std::println;
 using std::vector;
@@ -28,9 +27,6 @@ int main(void) {
         println("ERROR: Filename = '{}'", filename);
         return 1;
     }
-    for (const auto& row: file_contents) {
-        println("{}", row);
-    }
 
     std::map<string, vector<string>> connections;
 
@@ -49,17 +45,8 @@ int main(void) {
         connections[key] = values;
     }
 
-    println("------------------------------");
-    for (const auto& [k, v]: connections) {
-        std::print("{}: |", k);
-        for (const auto& item: v) {
-            print("{}|", item);
-        }
-        println("");
-    }
-    println("------------------------------");
-
     int part1 = count_paths(connections, "you", 0);
+    if (filename == "data/input.txt") assert(part1 == 786);
     int part2 = 0;
 
     println("Part 1: {}", part1);
@@ -81,11 +68,9 @@ FileContents read_file(const string &filename) {
 }
 
 int count_paths(std::map<string, vector<string>> node_map, string node, int path_count) {
-    println("node = {} :: path_count = {}", node, path_count);
     for (const auto& next: node_map[node]) {
         if (next == "out") {
             path_count += 1;
-            println("node = out :: path_count = {}", path_count);
             return path_count;
         }
         path_count = count_paths(node_map, next, path_count);

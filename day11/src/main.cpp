@@ -11,6 +11,7 @@
 using std::println;
 using std::vector;
 using std::string;
+using std::unordered_map;
 
 using FileContents = vector<string>;
 
@@ -58,6 +59,7 @@ int main(void) {
     Path part2_path = count_paths_part2(connections, "svr", false, false);
 
     unsigned long part2 = part2_path.path_count;
+    if (filename == "data/input.txt") assert(part2 == 495845045016588);
 
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);
@@ -78,7 +80,7 @@ FileContents read_file(const string &filename) {
 }
 
 int count_paths_part1(const std::map<string, vector<string>>& node_map, const string& node) {
-    static std::unordered_map<std::string, int> cache;
+    static unordered_map<std::string, int> cache;
 
     if (cache.contains(node)) return cache[node];
 
@@ -94,21 +96,17 @@ int count_paths_part1(const std::map<string, vector<string>>& node_map, const st
 }
 
 Path count_paths_part2(const std::map<string, vector<string>>& node_map, const string& node, bool dac, bool fft) {
-    static std::unordered_map<string, std::unordered_map<int, Path>> cache;
+    static unordered_map<string, unordered_map<int, Path>> cache;
 
     int state_key = (dac ? 1 : 0) | (fft ? 2 : 0);
 
-    if (cache.contains(node) && cache[node].contains(state_key)) {
-        return cache[node][state_key];
-    }
+    if (cache.contains(node) && cache[node].contains(state_key)) return cache[node][state_key];
 
     Path path_details = {.path_count=0, .dac = dac, .fft = fft};
 
     for (const auto& next : node_map.at(node)) {
         if (next == "out") {
-            if (dac && fft) {
-                path_details.path_count += 1;
-            }
+            if (dac && fft) path_details.path_count += 1;
         } else {
             bool new_dac = dac || (next == "dac");
             bool new_fft = fft || (next == "fft");

@@ -2,6 +2,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <print>
 #include <fstream>
@@ -13,8 +14,15 @@ using std::string;
 
 using FileContents = vector<string>;
 
+struct Path {
+    unsigned long path_count;
+    bool dac;
+    bool fft;
+};
+
 FileContents read_file(const string &filename);
-int count_paths(std::map<string, vector<string>> node_map, string node, int path_count);
+int count_paths_part1(const std::map<std::string, std::vector<std::string>>& node_map, const std::string& node);
+Path count_paths_part2(const std::map<string, vector<string>>& node_map, const string& node, bool dac, bool fft);
 
 int main(void) {
     // string filename = "data/test.txt";
@@ -45,9 +53,11 @@ int main(void) {
         connections[key] = values;
     }
 
-    int part1 = count_paths(connections, "you", 0);
+    int part1 = count_paths_part1(connections, "you");
     if (filename == "data/input.txt") assert(part1 == 786);
-    int part2 = 0;
+    Path part2_path = count_paths_part2(connections, "svr", false, false);
+
+    unsigned long part2 = part2_path.path_count;
 
     println("Part 1: {}", part1);
     println("Part 2: {}", part2);
@@ -67,14 +77,48 @@ FileContents read_file(const string &filename) {
     return file_contents;
 }
 
-int count_paths(std::map<string, vector<string>> node_map, string node, int path_count) {
-    for (const auto& next: node_map[node]) {
-        if (next == "out") {
-            path_count += 1;
-            return path_count;
-        }
-        path_count = count_paths(node_map, next, path_count);
+int count_paths_part1(const std::map<string, vector<string>>& node_map, const string& node) {
+    static std::unordered_map<std::string, int> cache;
+
+    if (cache.contains(node)) return cache[node];
+
+    int path_count = 0;
+
+    for (const auto& next : node_map.at(node)) {
+        if (next == "out") path_count += 1;
+        else path_count += count_paths_part1(node_map, next);
     }
+
+    cache[node] = path_count;
     return path_count;
+}
+
+Path count_paths_part2(const std::map<string, vector<string>>& node_map, const string& node, bool dac, bool fft) {
+    static std::unordered_map<string, std::unordered_map<int, Path>> cache;
+
+    int state_key = (dac ? 1 : 0) | (fft ? 2 : 0);
+
+    if (cache.contains(node) && cache[node].contains(state_key)) {
+        return cache[node][state_key];
+    }
+
+    Path path_details = {.path_count=0, .dac = dac, .fft = fft};
+
+    for (const auto& next : node_map.at(node)) {
+        if (next == "out") {
+            if (dac && fft) {
+                path_details.path_count += 1;
+            }
+        } else {
+            bool new_dac = dac || (next == "dac");
+            bool new_fft = fft || (next == "fft");
+
+            Path new_details = count_paths_part2(node_map, next, new_dac, new_fft);
+            path_details.path_count += new_details.path_count;
+        }
+    }
+
+    cache[node][state_key] = path_details;
+    return path_details;
 }
 

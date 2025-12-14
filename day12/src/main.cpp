@@ -12,6 +12,9 @@ using std::string;
 
 using FileContents = vector<string>;
 
+constexpr int PACKAGE_TYPES = 5;
+constexpr int ROWS = 3;
+
 FileContents read_file(const string &filename);
 
 int main(void) {
@@ -26,18 +29,16 @@ int main(void) {
         return 1;
     }
 
+    string line;
     vector<long> p_sizes;
-    for (size_t i=0; i<6; i++) {
-        int line_index = i*5 + 1;
-
-        string line;
+    for (size_t i=0; i<=PACKAGE_TYPES; i++) {
+        int line_index = i*PACKAGE_TYPES + 1;
         long p_size = 0;
-        for (size_t l=0; l<3; l++) {
+        for (size_t l=0; l<ROWS; l++) {
             line = file_contents[line_index + l];
-            for (size_t j=0; j<3; j++) {
-                if (line[j] == '#') {
-                    p_size += 1;
-                } else if (line[j] != '.') {
+            for (size_t j=0; j<ROWS; j++) {
+                if (line[j] == '#') p_size += 1;
+                else if (line[j] != '.') {
                     println("ERROR: Unexpected character: '{}'", line[j]);
                     exit(1);
                 }
@@ -45,12 +46,8 @@ int main(void) {
         }
         p_sizes.push_back(p_size);
     }
-    for (auto s: p_sizes) {
-        println("{}", s);
-    }
 
     long part1 = 0;
-
     for (size_t i=30; i<file_contents.size(); i++) {
         char x;
         long x_size, y_size, amount;
@@ -62,28 +59,20 @@ int main(void) {
             amounts.push_back(amount);
         }
 
-        long lazy = 0;
-        long tight = 0;
+        long lazy = 0, tight = 0;
         for (int i = 0; auto amount: amounts) {
             lazy += 9 * amount;
             tight += p_sizes[i++] * amount;
         }
         long total_size = x_size * y_size;
-        if (total_size < tight) {
-            continue;
-        } else if (lazy <= total_size) {
-            part1 += 1;
-        } else {
-            assert(false && "You need to implement more complex logic for this one");
-        }
+        if (total_size < tight) continue;         // Impossible. Don't even try.
+        else if (lazy <= total_size) part1 += 1;  // Trivial
+        else assert(false && "You need to implement more complex logic for this one");
     }
 
     if (filename == "data/input.txt") assert(part1 == 460);
 
-    long part2 = 0;
-
     println("Part 1: {}", part1);
-    println("Part 2: {}", part2);
 
     return 0;
 }

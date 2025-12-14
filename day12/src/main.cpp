@@ -12,7 +12,7 @@ using std::string;
 
 using FileContents = vector<string>;
 
-constexpr int PACKAGE_TYPES = 5;
+constexpr int PACKAGE_TYPES = 6;
 constexpr int ROWS = 3;
 
 FileContents read_file(const string &filename);
@@ -30,10 +30,10 @@ int main(void) {
     }
 
     string line;
-    vector<long> p_sizes;
-    for (size_t i=0; i<=PACKAGE_TYPES; i++) {
-        int line_index = i*PACKAGE_TYPES + 1;
-        long p_size = 0;
+    vector<int> p_sizes;
+    for (size_t i=0; i<PACKAGE_TYPES; i++) {
+        int line_index = i*(PACKAGE_TYPES-1) + 1;
+        int p_size = 0;
         for (size_t l=0; l<ROWS; l++) {
             line = file_contents[line_index + l];
             for (size_t j=0; j<ROWS; j++) {
@@ -47,24 +47,24 @@ int main(void) {
         p_sizes.push_back(p_size);
     }
 
-    long part1 = 0;
+    int part1 = 0;
     for (size_t i=30; i<file_contents.size(); i++) {
         char x;
-        long x_size, y_size, amount;
-        vector<long> amounts;
+        int x_size, y_size, amount;
+        vector<int> amounts;
         std::stringstream ss(file_contents[i]);
         ss >> x_size >> x >> y_size >> x;
-        for (size_t s=0; s<6; s++) {
+        for (size_t s=0; s<PACKAGE_TYPES; s++) {
             ss >> amount;
             amounts.push_back(amount);
         }
 
-        long lazy = 0, tight = 0;
-        for (int i = 0; auto amount: amounts) {
-            lazy += 9 * amount;
-            tight += p_sizes[i++] * amount;
+        int lazy = 0, tight = 0;
+        for (int j = 0; auto amount: amounts) {
+            lazy += ROWS*ROWS * amount;
+            tight += p_sizes[j++] * amount;
         }
-        long total_size = x_size * y_size;
+        int total_size = x_size * y_size;
         if (total_size < tight) continue;         // Impossible. Don't even try.
         else if (lazy <= total_size) part1 += 1;  // Trivial
         else assert(false && "You need to implement more complex logic for this one");
